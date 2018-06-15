@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:padding="2dp"
     android:background="#212121"
-    tools:context=".MainActivity"
+    tools:context=".Main.MainActivity"
     android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
     android:id="@+id/activity_main">
 

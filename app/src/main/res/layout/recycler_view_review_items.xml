@@ -14,14 +14,13 @@
         android:layout_height="match_parent"
         android:id="@+id/parentView">
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="190dp"
-            android:scaleType="centerCrop"
-            android:layout_alignParentTop="true"
-            android:src="@drawable/placeholder"
-            android:contentDescription="Placeholder"
-            android:id="@+id/poster"/>
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/review">
+
+
+    </TextView>
 
 
     </RelativeLayout>

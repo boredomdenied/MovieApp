@@ -1,9 +1,7 @@
-package com.boredomdenied.movieapp;
+package com.boredomdenied.movieapp.Main;
 
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,10 +17,14 @@ import java.util.List;
 
 import android.util.Log;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.boredomdenied.movieapp.BuildConfig;
+import com.boredomdenied.movieapp.Detail.DetailActivity;
+import com.boredomdenied.movieapp.Utils.FeedItem;
+import com.boredomdenied.movieapp.Utils.OnItemClickListener;
+import com.boredomdenied.movieapp.R;
 import com.leinardi.android.speeddial.SpeedDialActionItem;
 import com.leinardi.android.speeddial.SpeedDialView;
 
@@ -30,7 +32,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static java.security.AccessController.getContext;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MovieApp";
     private static final String POSTER_URL = "http://image.tmdb.org/t/p/w185";
     private static final String BACKDROP_URL = "http://image.tmdb.org/t/p/original";
+
 
 
     public List<FeedItem> feedsList;
@@ -127,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
                 item.setMovieDescription(post.optString("overview"));
                 item.setUserRating(post.optString("vote_average"));
                 item.setReleaseDate(post.optString("release_date"));
+                item.setMovieId(post.optString("id"));
+
 
                 feedsList.add(item);
             }
@@ -187,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra("overview", item.getMovieDescription());
                         intent.putExtra("vote_average", item.getUserRating());
                         intent.putExtra("release_date", item.getReleaseDate());
+                        intent.putExtra("movie_id", item.getMovieId());
                         startActivity(intent);
 
                     }
