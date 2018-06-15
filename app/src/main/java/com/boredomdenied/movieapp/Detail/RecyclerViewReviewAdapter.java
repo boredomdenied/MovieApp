@@ -8,15 +8,15 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.boredomdenied.movieapp.R;
-import com.boredomdenied.movieapp.Utils.ReviewFeedItem;
+import com.boredomdenied.movieapp.Utils.FeedItem;
 
 import java.util.List;
 
 public class RecyclerViewReviewAdapter extends RecyclerView.Adapter<RecyclerViewReviewAdapter.CustomViewHolder> {
-    private List<ReviewFeedItem> feedItemList;
+    private List<FeedItem> feedItemList;
     private Context mContext;
 
-    public RecyclerViewReviewAdapter(Context context, List<ReviewFeedItem> feedItemList) {
+    public RecyclerViewReviewAdapter(Context context, List<FeedItem> feedItemList) {
         this.feedItemList = feedItemList;
         this.mContext = context;
     }
@@ -30,7 +30,7 @@ public class RecyclerViewReviewAdapter extends RecyclerView.Adapter<RecyclerView
 
     @Override
     public void onBindViewHolder(CustomViewHolder customViewHolder, int i) {
-        final ReviewFeedItem feedItem = feedItemList.get(i);
+        final FeedItem feedItem = feedItemList.get(i);
         customViewHolder.textView.setText(feedItem.getReviewContent());
 
     }

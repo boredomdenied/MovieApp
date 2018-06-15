@@ -19,7 +19,7 @@ import com.boredomdenied.movieapp.BuildConfig;
 import com.boredomdenied.movieapp.Utils.FeedItem;
 import com.boredomdenied.movieapp.Utils.OnItemClickListener;
 import com.boredomdenied.movieapp.R;
-import com.boredomdenied.movieapp.Utils.ReviewFeedItem;
+import com.boredomdenied.movieapp.Utils.FeedItem;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -39,7 +39,7 @@ public class DetailActivity extends AppCompatActivity {
     private static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
     private static final String TAG = "MovieApp";
     public List<FeedItem> feedsList;
-    public List<ReviewFeedItem> reviewFeedList;
+    public List<FeedItem> feedList;
     ImageView poster, hero;
     TextView mTitle, mOverview, mReleaseDate, mUserRating, mTextRating;
     RatingBar mRatingBar;
@@ -60,7 +60,14 @@ public class DetailActivity extends AppCompatActivity {
         reviewRecyclerView = findViewById(R.id.review_recycler_view);
         reviewRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         progressBar = findViewById(R.id.progress_bar);
-
+        mTitle = findViewById(R.id.title);
+        hero = findViewById(R.id.hero);
+        poster = findViewById(R.id.poster);
+        mOverview = findViewById(R.id.overview);
+        mTextRating = findViewById(R.id.tv_rating);
+        mUserRating = findViewById(R.id.rating);
+        mReleaseDate = findViewById(R.id.release_date);
+        mRatingBar = findViewById(R.id.movie_rating);
 
         String movieId = getIntent().getExtras().getString("movie_id");
         String Poster = getIntent().getExtras().getString("poster");
@@ -75,17 +82,6 @@ public class DetailActivity extends AppCompatActivity {
 
                new MovieTask().execute(MOVIE_URL);
                new ReviewTask().execute(REVIEW_URL);
-
-
-        mTitle = findViewById(R.id.title);
-        hero = findViewById(R.id.hero);
-        poster = findViewById(R.id.poster);
-        mOverview = findViewById(R.id.overview);
-
-        mTextRating = findViewById(R.id.tv_rating);
-        mUserRating = findViewById(R.id.rating);
-        mReleaseDate = findViewById(R.id.release_date);
-        mRatingBar = findViewById(R.id.movie_rating);
 
         Picasso.get()
                 .load(Poster)
@@ -103,9 +99,6 @@ public class DetailActivity extends AppCompatActivity {
         mTextRating.setText("Rating:  ");
         mUserRating.setText(userRating);
         mReleaseDate.setText("Released:  " + releaseDate);
-
-
-   //     Toast.makeText(DetailActivity.this, REVIEW_URL, Toast.LENGTH_SHORT).show();
 
     }
 
@@ -133,14 +126,14 @@ public class DetailActivity extends AppCompatActivity {
         try {
             JSONObject response = new JSONObject(result);
             JSONArray posts = response.optJSONArray("results");
-            reviewFeedList = new ArrayList<>();
+            feedList = new ArrayList<>();
 
             for (int i = 0; i < posts.length(); i++) {
                 JSONObject post = posts.optJSONObject(i);
-                ReviewFeedItem item = new ReviewFeedItem();
+                FeedItem item = new FeedItem();
                 item.setReviewContent(post.optString("content"));
 
-                reviewFeedList.add(item);
+                feedList.add(item);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -192,6 +185,7 @@ public class DetailActivity extends AppCompatActivity {
                 trailerAdapter = new RecyclerViewTrailerAdapter(DetailActivity.this, feedsList);
                 trailerRecyclerView.setAdapter(trailerAdapter);
                 trailerAdapter.setOnItemClickListener(new OnItemClickListener() {
+
                     @Override
                     public void onItemClick(FeedItem item) {
 
@@ -218,7 +212,7 @@ public class DetailActivity extends AppCompatActivity {
 
     public class ReviewTask extends AsyncTask<String, Void, Integer> {
 
-        public ReviewFeedItem item;
+        public FeedItem item;
 
         @Override
         protected void onPreExecute() {
@@ -258,14 +252,14 @@ public class DetailActivity extends AppCompatActivity {
 
             if (result == 1) {
 
-                reviewAdapter = new RecyclerViewReviewAdapter(DetailActivity.this, reviewFeedList);
+                reviewAdapter = new RecyclerViewReviewAdapter(DetailActivity.this, feedList);
                 reviewRecyclerView.setAdapter(reviewAdapter);
 
 
             } else {
                 Toast.makeText(DetailActivity.this, "not found", Toast.LENGTH_SHORT).show();
+
             }
         }
     }
-
 }

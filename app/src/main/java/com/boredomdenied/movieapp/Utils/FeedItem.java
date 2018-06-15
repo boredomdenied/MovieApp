@@ -69,9 +69,9 @@ public class FeedItem {
 
     public void setKeyId(String keyId) { this.keyId = keyId; }
 
-//    public String getReviewContent() { return reviewContent; }
-//
-//    public void setReviewContent(String reviewContent) { this.reviewContent = reviewContent; }
+    public String getReviewContent() { return reviewContent; }
+
+    public void setReviewContent(String reviewContent) { this.reviewContent = reviewContent; }
 
 
 
