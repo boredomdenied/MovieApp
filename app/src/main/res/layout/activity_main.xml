@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:padding="2dp"
     android:background="#212121"
-    tools:context=".Main.MainActivity"
+    tools:context=".MainActivity"
     android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
     android:id="@+id/activity_main">
 
@@ -27,6 +27,15 @@
         android:layout_height="match_parent"
         android:layout_centerInParent="true"
         android:id="@+id/recycler_view"/>
+
+    <TextView
+        android:id="@+id/null_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:textAppearance="?android:textAppearanceMedium"/>
 
     <ProgressBar
         android:layout_width="wrap_content"

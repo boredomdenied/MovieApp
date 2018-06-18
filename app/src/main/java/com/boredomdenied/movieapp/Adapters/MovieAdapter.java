@@ -1,4 +1,4 @@
-package com.boredomdenied.movieapp.Detail;
+package com.boredomdenied.movieapp.Adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,36 +8,38 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.boredomdenied.movieapp.Utils.FeedItem;
-import com.boredomdenied.movieapp.Utils.OnItemClickListener;
+import com.boredomdenied.movieapp.Objects.Movie;
+import com.boredomdenied.movieapp.Utils.OnMovieClickListener;
 import com.boredomdenied.movieapp.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-public class RecyclerViewTrailerAdapter extends RecyclerView.Adapter<RecyclerViewTrailerAdapter.CustomViewHolder> {
-    private List<FeedItem> feedItemList;
-    private Context mContext;
-    private OnItemClickListener onItemClickListener;
 
-    public RecyclerViewTrailerAdapter(Context context, List<FeedItem> feedItemList) {
-        this.feedItemList = feedItemList;
+public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.CustomViewHolder> {
+    private List<Movie> movieList;
+    private Context mContext;
+    private OnMovieClickListener onMovieClickListener;
+
+    public MovieAdapter(Context context, List<Movie> movieList) {
+        this.movieList = movieList;
         this.mContext = context;
     }
 
     @Override
     public CustomViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_view_trailer_items, null);
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_view_items, null);
         CustomViewHolder viewHolder = new CustomViewHolder(view);
         return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(CustomViewHolder customViewHolder, int i) {
-        final FeedItem feedItem = feedItemList.get(i);
+        final Movie movie = movieList.get(i);
 
-        if (!TextUtils.isEmpty(feedItem.getKeyId())) {
-            Picasso.get().load("https://img.youtube.com/vi/" + feedItem.getKeyId() + "/mqdefault.jpg")
+        if (!TextUtils.isEmpty(movie.getPoster())) {
+            Picasso.get().load(movie.getPoster())
+                    .resize(185,277)
                     .error(R.drawable.placeholder)
                     .placeholder(R.color.colorPrimaryDark)
                     .into(customViewHolder.imageView);
@@ -47,7 +49,7 @@ public class RecyclerViewTrailerAdapter extends RecyclerView.Adapter<RecyclerVie
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onItemClickListener.onItemClick(feedItem);
+                onMovieClickListener.onItemClick(movie);
             }
         };
         customViewHolder.imageView.setOnClickListener(listener);
@@ -56,15 +58,15 @@ public class RecyclerViewTrailerAdapter extends RecyclerView.Adapter<RecyclerVie
 
     @Override
     public int getItemCount() {
-        return (null != feedItemList ? feedItemList.size() : 0);
+        return (null != movieList ? movieList.size() : 0);
     }
 
-    public OnItemClickListener getOnItemClickListener() {
-        return onItemClickListener;
+    public OnMovieClickListener getOnMovieClickListener() {
+        return onMovieClickListener;
     }
 
-    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
-        this.onItemClickListener = onItemClickListener;
+    public void setOnMovieClickListener(OnMovieClickListener onMovieClickListener) {
+        this.onMovieClickListener = onMovieClickListener;
     }
 
     class CustomViewHolder extends RecyclerView.ViewHolder {

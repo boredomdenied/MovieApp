@@ -1,7 +1,14 @@
-package com.boredomdenied.movieapp.Main;
+package com.boredomdenied.movieapp;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,13 +25,15 @@ import java.util.List;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.boredomdenied.movieapp.BuildConfig;
-import com.boredomdenied.movieapp.Detail.DetailActivity;
-import com.boredomdenied.movieapp.Utils.FeedItem;
-import com.boredomdenied.movieapp.Utils.OnItemClickListener;
-import com.boredomdenied.movieapp.R;
+import com.boredomdenied.movieapp.Adapters.MovieAdapter;
+import com.boredomdenied.movieapp.Adapters.MovieDataModelAdapter;
+import com.boredomdenied.movieapp.Database.MovieDataModel;
+import com.boredomdenied.movieapp.Objects.Movie;
+import com.boredomdenied.movieapp.Utils.OnMovieClickListener;
+import com.facebook.stetho.Stetho;
 import com.leinardi.android.speeddial.SpeedDialActionItem;
 import com.leinardi.android.speeddial.SpeedDialView;
 
@@ -40,37 +49,62 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MovieApp";
     private static final String POSTER_URL = "http://image.tmdb.org/t/p/w185";
     private static final String BACKDROP_URL = "http://image.tmdb.org/t/p/original";
-
-
-
-    public List<FeedItem> feedsList;
+    final String topRatedUrl = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey + "&language=en-US";
+    public ArrayList<Movie> movieList;
+    String mostPopularUrl = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey + "&language=en-US";
+    private MovieDataModelAdapter mMovieDataModelAdapter;
+    private TextView nullTextView;
     private RecyclerView mRecyclerView;
-    private RecyclerViewAdapter adapter;
+    private MovieAdapter adapter;
     private ProgressBar progressBar;
+    private MovieDataViewModel viewModel;
+    private NetworkInfo networkInfo;
+    private ConnectivityManager conMan;
+    private String noInternet = "No internet connectivity. Only displaying your Favorie Movies.";
+    public boolean useFavorites = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Stetho.initializeWithDefaults(this);
 
+        int spanCount;
+        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            spanCount = 6;
+        } else {
+            spanCount = 3;
+        }
 
+        viewModel = ViewModelProviders.of(MainActivity.this).get(MovieDataViewModel.class);
         mRecyclerView = findViewById(R.id.recycler_view);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        mRecyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         progressBar = findViewById(R.id.progress_bar);
+        nullTextView = findViewById(R.id.null_view);
+        conMan = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        networkInfo = conMan.getActiveNetworkInfo();
+
 
         final String nowPlayingUrl = "https://api.themoviedb.org/3/movie/now_playing?api_key=" + apiKey + "&language=en-US";
-        final String mostPopularUrl = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey + "&language=en-US";
-        final String topRatedUrl = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey + "&language=en-US";
 
 
-        new MovieTask().execute(nowPlayingUrl);
+        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+            if (!useFavorites) {
+                new MovieTask().execute(nowPlayingUrl);
+            } else {
+                progressBar.setVisibility(View.GONE);
+                getFavoriteMovies();
+                Toast.makeText(getApplicationContext(), noInternet, Toast.LENGTH_LONG).show();
+            }
+        }
+
 
         SpeedDialView speedDialView = findViewById(R.id.speedDial);
 
         speedDialView.addActionItem(
                 new SpeedDialActionItem.Builder(R.id.fab_no_label, R.drawable
                         .ic_heart_black_24dp)
-                        .setLabel("Now Showing")
+                        .setLabel("My Favorites")
                         .setLabelClickable(true)
                         .setFabBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.colorAccent, getTheme()))
                         .create());
@@ -97,12 +131,15 @@ public class MainActivity extends AppCompatActivity {
             public boolean onActionSelected(SpeedDialActionItem speedDialActionItem) {
                 switch (speedDialActionItem.getId()) {
                     case R.id.fab_no_label:
-                        new MovieTask().execute(nowPlayingUrl);
+                        useFavorites = true;
+                        getFavoriteMovies();
                         return false; // true to keep the Speed Dial open
                     case R.id.fab_custom_color:
+                        useFavorites = false;
                         new MovieTask().execute(mostPopularUrl);
                         return false; // true to keep the Speed Dial open
                     case R.id.fab_long_label:
+                        useFavorites = false;
                         new MovieTask().execute(topRatedUrl);
                         return false; // true to keep the Speed Dial open
                     default:
@@ -113,29 +150,80 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void getFavoriteMovies() {
+
+        MovieDataViewModel viewModel = ViewModelProviders.of(MainActivity.this).get(MovieDataViewModel.class);
+        viewModel.loadAllMovies().observe(MainActivity.this, new Observer<List<MovieDataModel>>() {
+            @Override
+            public void onChanged(@Nullable List<MovieDataModel> allMovies) {
+
+                mMovieDataModelAdapter = new MovieDataModelAdapter(MainActivity.this, allMovies);
+                if (allMovies != null) {
+                    if (allMovies.size() == 0) {
+                        nullTextView.setVisibility(View.VISIBLE);
+                        nullTextView.setText(R.string.app_name);
+                    }
+                }
+
+                mRecyclerView.setAdapter(mMovieDataModelAdapter);
+            }
+        });
+    }
+
     private void parseResult(String result) {
 
         try {
             JSONObject response = new JSONObject(result);
             JSONArray posts = response.optJSONArray("results");
-            feedsList = new ArrayList<>();
+            movieList = new ArrayList<>();
 
             for (int i = 0; i < posts.length(); i++) {
                 JSONObject post = posts.optJSONObject(i);
-                FeedItem item = new FeedItem();
+                Movie item = new Movie();
                 item.setPoster(POSTER_URL + post.optString("poster_path"));
                 item.setHeroBackdrop(BACKDROP_URL + post.optString("backdrop_path"));
                 item.setMovieName(post.optString("original_title"));
                 item.setMovieDescription(post.optString("overview"));
                 item.setUserRating(post.optString("vote_average"));
                 item.setReleaseDate(post.optString("release_date"));
-                item.setMovieId(post.optString("id"));
+                item.setMovieId(post.optInt("id"));
 
 
-                feedsList.add(item);
+                movieList.add(item);
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        Log.d(TAG, "onSaveInstanceState Called.");
+        super.onSaveInstanceState(savedInstanceState);
+        if (!useFavorites) {
+            savedInstanceState.putString("useFavorites", "false");
+        } else {
+            savedInstanceState.putString("useFavorites", "true");
+        }
+
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        Log.d(TAG, "onRestoreInstanceState Called");
+        super.onRestoreInstanceState(savedInstanceState);
+
+        String checkFavorites = savedInstanceState.getString("useFavorites");
+
+        if (checkFavorites == "true") {
+            Log.d(TAG, "" + savedInstanceState.getBoolean("useFavorites"));
+            Toast.makeText(this, "got favorites", Toast.LENGTH_LONG).show();
+            useFavorites = true;
+            getFavoriteMovies();
+        } else {
+            Toast.makeText(this, "no favorites", Toast.LENGTH_LONG).show();
+            useFavorites = false;
+
         }
     }
 
@@ -179,11 +267,11 @@ public class MainActivity extends AppCompatActivity {
 
             if (result == 1) {
 
-                adapter = new RecyclerViewAdapter(MainActivity.this, feedsList);
+                adapter = new MovieAdapter(MainActivity.this, movieList);
                 mRecyclerView.setAdapter(adapter);
-                adapter.setOnItemClickListener(new OnItemClickListener() {
+                adapter.setOnMovieClickListener(new OnMovieClickListener() {
                     @Override
-                    public void onItemClick(FeedItem item) {
+                    public void onItemClick(Movie item) {
                         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                         intent.putExtra("poster", item.getPoster());
                         intent.putExtra("hero_backdrop", item.getHeroBackdrop());

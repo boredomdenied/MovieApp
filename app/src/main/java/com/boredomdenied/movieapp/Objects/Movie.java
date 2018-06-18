@@ -1,18 +1,16 @@
-package com.boredomdenied.movieapp.Utils;
+package com.boredomdenied.movieapp.Objects;
 
 
-public class FeedItem {
+public class Movie {
 
     private String title;
     private String poster;
     private String heroBackdrop;
-    private String movieId;
+    private int movieId;
     private String movieName;
     private String movieDescription;
     private String userRating;
     private String releaseDate;
-    private String keyId;
-    private String reviewContent;
 
     public String getTitle() {
         return title;
@@ -61,19 +59,9 @@ public class FeedItem {
         this.releaseDate = releaseDate;
     }
 
-    public String getMovieId() { return movieId; }
+    public int getMovieId() { return movieId; }
 
-    public void setMovieId(String movieId) { this.movieId = movieId; }
-
-    public String getKeyId() { return keyId; }
-
-    public void setKeyId(String keyId) { this.keyId = keyId; }
-
-    public String getReviewContent() { return reviewContent; }
-
-    public void setReviewContent(String reviewContent) { this.reviewContent = reviewContent; }
-
-
-
-
+    public void setMovieId(int movieId) { this.movieId = movieId; }
+    
+    
 }

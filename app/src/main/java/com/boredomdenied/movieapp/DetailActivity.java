@@ -1,25 +1,35 @@
-package com.boredomdenied.movieapp.Detail;
+package com.boredomdenied.movieapp;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.PersistableBundle;
+import android.support.annotation.Nullable;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.boredomdenied.movieapp.BuildConfig;
-import com.boredomdenied.movieapp.Utils.FeedItem;
-import com.boredomdenied.movieapp.Utils.OnItemClickListener;
-import com.boredomdenied.movieapp.R;
-import com.boredomdenied.movieapp.Utils.FeedItem;
+import com.boredomdenied.movieapp.Adapters.ReviewAdapter;
+import com.boredomdenied.movieapp.Adapters.TrailerAdapter;
+import com.boredomdenied.movieapp.Database.MovieDataModel;
+import com.boredomdenied.movieapp.Objects.Movie;
+import com.boredomdenied.movieapp.Objects.Review;
+import com.boredomdenied.movieapp.Objects.Trailer;
+import com.boredomdenied.movieapp.Utils.OnTrailerClickListener;
+import com.leinardi.android.speeddial.SpeedDialActionItem;
+import com.leinardi.android.speeddial.SpeedDialView;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -38,16 +48,18 @@ public class DetailActivity extends AppCompatActivity {
     private static final String apiKey = BuildConfig.MOVIE_API_KEY;
     private static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
     private static final String TAG = "MovieApp";
-    public List<FeedItem> feedsList;
-    public List<FeedItem> feedList;
+    public List<Review> reviewList;
+    public List<Trailer> trailerList;
     ImageView poster, hero;
     TextView mTitle, mOverview, mReleaseDate, mUserRating, mTextRating;
     RatingBar mRatingBar;
     private RecyclerView trailerRecyclerView;
     private RecyclerView reviewRecyclerView;
-    private RecyclerViewTrailerAdapter trailerAdapter;
-    private RecyclerViewReviewAdapter reviewAdapter;
+    private TrailerAdapter trailerAdapter;
+    private ReviewAdapter reviewAdapter;
     private ProgressBar progressBar;
+    private MovieDataViewModel viewModel;
+    private MovieDataModel pulledMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +67,7 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
+        viewModel = ViewModelProviders.of(DetailActivity.this).get(MovieDataViewModel.class);
         trailerRecyclerView = findViewById(R.id.trailer_recycler_view);
         trailerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         reviewRecyclerView = findViewById(R.id.review_recycler_view);
@@ -69,22 +82,98 @@ public class DetailActivity extends AppCompatActivity {
         mReleaseDate = findViewById(R.id.release_date);
         mRatingBar = findViewById(R.id.movie_rating);
 
-        String movieId = getIntent().getExtras().getString("movie_id");
-        String Poster = getIntent().getExtras().getString("poster");
-        String heroBackdrop = getIntent().getExtras().getString("hero_backdrop");
-        String movieName = getIntent().getExtras().getString("original_title");
-        String movieDescription = getIntent().getExtras().getString("overview");
-        String userRating = getIntent().getExtras().getString("vote_average");
-        String releaseDate = getIntent().getExtras().getString("release_date");
+        final int movieId = getIntent().getExtras().getInt("movie_id");
+        final String moviePoster = getIntent().getExtras().getString("poster");
+        final String heroBackdrop = getIntent().getExtras().getString("hero_backdrop");
+        final String movieName = getIntent().getExtras().getString("original_title");
+        final String movieDescription = getIntent().getExtras().getString("overview");
+        final String userRating = getIntent().getExtras().getString("vote_average");
+        final String releaseDate = getIntent().getExtras().getString("release_date");
+
+
+        SpeedDialView speedDialView = findViewById(R.id.speedDialFavorite);
+
+        speedDialView.addActionItem(
+                new SpeedDialActionItem.Builder(R.id.fab_no_label, R.drawable
+                        .ic_heart_black_24dp)
+                        .setLabel("Save to Favorites")
+                        .setLabelClickable(true)
+                        .setFabBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.colorAccent, getTheme()))
+                        .create());
+
+        speedDialView.addActionItem(
+                new SpeedDialActionItem.Builder(R.id.fab_custom_color, R.drawable
+                        .ic_heart_black_24dp)
+                        .setLabel("Delete from Favorites")
+                        .setLabelClickable(true)
+                        .setFabBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.colorAccent, getTheme()))
+                        .create());
+
+
+        speedDialView.setOnActionSelectedListener(new SpeedDialView.OnActionSelectedListener() {
+            @Override
+            public boolean onActionSelected(SpeedDialActionItem speedDialActionItem) {
+                switch (speedDialActionItem.getId()) {
+                    case R.id.fab_no_label:
+
+                        viewModel.loadMovieById(movieId).observe(DetailActivity.this, new Observer<MovieDataModel>() {
+
+                            @Override
+                            public void onChanged(@Nullable MovieDataModel movie) {
+                                if (movie != null) {
+                                    Log.d(TAG, "onChanged: " + movie.getMovieId());
+                                    pulledMovie = movie;
+                                } else {
+                                    Log.d(TAG, "onChanged: Null");
+                                }
+                            }
+                        });
+
+                        MovieDataModel movieDataModel = new MovieDataModel(movieId, moviePoster, releaseDate,
+                                userRating, movieDescription, heroBackdrop, movieName);
+
+                        viewModel.insertMovie(movieDataModel);
+
+                        return false; // true to keep the Speed Dial open
+
+                    case R.id.fab_custom_color:
+
+                        viewModel.loadMovieById(movieId).observe(DetailActivity.this, new Observer<MovieDataModel>() {
+
+                            @Override
+                            public void onChanged(@Nullable MovieDataModel movie) {
+                                if (movie != null) {
+                                    Log.d(TAG, "onChanged: " + movie.getMovieId());
+                                    pulledMovie = movie;
+                                } else {
+                                    Log.d(TAG, "onChanged: Null");
+                                }
+                            }
+                        });
+
+                        MovieDataModel movieDataModel2 = new MovieDataModel(movieId, moviePoster, releaseDate,
+                                userRating, movieDescription, heroBackdrop, movieName);
+
+                        viewModel.deleteMovie(movieDataModel2);
+
+                        return false; // true to keep the Speed Dial open
+
+
+                    default:
+                        return false;
+                }
+            }
+        });
+
 
         final String MOVIE_URL = "https://api.themoviedb.org/3/movie/" + movieId + "/videos?api_key=" + apiKey + "&language=en-US";
         final String REVIEW_URL = "https://api.themoviedb.org/3/movie/" + movieId + "/reviews?api_key=" + apiKey + "&language=en-US";
 
-               new MovieTask().execute(MOVIE_URL);
-               new ReviewTask().execute(REVIEW_URL);
+        new MovieTask().execute(MOVIE_URL);
+        new ReviewTask().execute(REVIEW_URL);
 
         Picasso.get()
-                .load(Poster)
+                .load(moviePoster)
                 .placeholder(R.color.colorPrimaryDark)
                 .into(poster);
 
@@ -107,14 +196,14 @@ public class DetailActivity extends AppCompatActivity {
         try {
             JSONObject response = new JSONObject(result);
             JSONArray posts = response.optJSONArray("results");
-            feedsList = new ArrayList<>();
+            trailerList = new ArrayList<>();
 
             for (int i = 0; i < posts.length(); i++) {
                 JSONObject post = posts.optJSONObject(i);
-                FeedItem item = new FeedItem();
+                Trailer item = new Trailer();
                 item.setKeyId(post.optString("key"));
 
-                feedsList.add(item);
+                trailerList.add(item);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -126,14 +215,14 @@ public class DetailActivity extends AppCompatActivity {
         try {
             JSONObject response = new JSONObject(result);
             JSONArray posts = response.optJSONArray("results");
-            feedList = new ArrayList<>();
+            reviewList = new ArrayList<>();
 
             for (int i = 0; i < posts.length(); i++) {
                 JSONObject post = posts.optJSONObject(i);
-                FeedItem item = new FeedItem();
+                Review item = new Review();
                 item.setReviewContent(post.optString("content"));
 
-                feedList.add(item);
+                reviewList.add(item);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -142,7 +231,7 @@ public class DetailActivity extends AppCompatActivity {
 
     public class MovieTask extends AsyncTask<String, Void, Integer> {
 
-        public FeedItem item;
+        public Trailer item;
 
         @Override
         protected void onPreExecute() {
@@ -182,12 +271,12 @@ public class DetailActivity extends AppCompatActivity {
 
             if (result == 1) {
 
-                trailerAdapter = new RecyclerViewTrailerAdapter(DetailActivity.this, feedsList);
+                trailerAdapter = new TrailerAdapter(DetailActivity.this, trailerList);
                 trailerRecyclerView.setAdapter(trailerAdapter);
-                trailerAdapter.setOnItemClickListener(new OnItemClickListener() {
+                trailerAdapter.setOnTrailerClickListener(new OnTrailerClickListener() {
 
                     @Override
-                    public void onItemClick(FeedItem item) {
+                    public void onItemClick(Trailer item) {
 
                         Intent yt_play = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + item.getKeyId()));
                         Intent yt_trailer = Intent.createChooser(yt_play, "Open With");
@@ -197,7 +286,7 @@ public class DetailActivity extends AppCompatActivity {
                         if (yt_play.resolveActivity(getPackageManager()) != null) {
                             startActivity(yt_trailer);
                         } else {
-                            Uri.parse("http://www.youtube.com/watch?v=" + item.getKeyId());
+                            Uri.parse(YOUTUBE_URL + item.getKeyId());
 
                         }
 
@@ -212,7 +301,7 @@ public class DetailActivity extends AppCompatActivity {
 
     public class ReviewTask extends AsyncTask<String, Void, Integer> {
 
-        public FeedItem item;
+        public Movie item;
 
         @Override
         protected void onPreExecute() {
@@ -252,7 +341,7 @@ public class DetailActivity extends AppCompatActivity {
 
             if (result == 1) {
 
-                reviewAdapter = new RecyclerViewReviewAdapter(DetailActivity.this, feedList);
+                reviewAdapter = new ReviewAdapter(DetailActivity.this, reviewList);
                 reviewRecyclerView.setAdapter(reviewAdapter);
 
 
@@ -262,4 +351,6 @@ public class DetailActivity extends AppCompatActivity {
             }
         }
     }
+
+
 }
