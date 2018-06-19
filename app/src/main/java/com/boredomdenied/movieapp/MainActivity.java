@@ -50,10 +50,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MovieApp";
     private static final String POSTER_URL = "http://image.tmdb.org/t/p/w185";
     private static final String BACKDROP_URL = "http://image.tmdb.org/t/p/original";
-    final String topRatedUrl = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey + "&language=en-US";
-    public ArrayList<Movie> movieList;
-    public boolean useFavorites;
-    String mostPopularUrl = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey + "&language=en-US";
+    private static final String topRatedUrl = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey + "&language=en-US";
+    private static final String mostPopularUrl = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey + "&language=en-US";
+    private ArrayList<Movie> movieList;
+    private boolean useFavorites;
+    private Parcelable mListState;
     private MovieDataModelAdapter mMovieDataModelAdapter;
     private TextView nullTextView;
     private RecyclerView mRecyclerView;
@@ -62,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
     private MovieDataViewModel viewModel;
     private NetworkInfo networkInfo;
     private ConnectivityManager conMan;
-    public Parcelable mListState;
     private String noInternet = "No internet connectivity. Only displaying your Favorie Movies.";
 
     @Override
