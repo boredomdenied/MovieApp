@@ -8,6 +8,7 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String BACKDROP_URL = "http://image.tmdb.org/t/p/original";
     final String topRatedUrl = "https://api.themoviedb.org/3/movie/top_rated?api_key=" + apiKey + "&language=en-US";
     public ArrayList<Movie> movieList;
+    public boolean useFavorites;
     String mostPopularUrl = "https://api.themoviedb.org/3/movie/popular?api_key=" + apiKey + "&language=en-US";
     private MovieDataModelAdapter mMovieDataModelAdapter;
     private TextView nullTextView;
@@ -60,14 +62,15 @@ public class MainActivity extends AppCompatActivity {
     private MovieDataViewModel viewModel;
     private NetworkInfo networkInfo;
     private ConnectivityManager conMan;
+    public Parcelable mListState;
     private String noInternet = "No internet connectivity. Only displaying your Favorie Movies.";
-    public boolean useFavorites = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Stetho.initializeWithDefaults(this);
+        Log.d(TAG, "onCreate called.");
+        //       Stetho.initializeWithDefaults(this);
 
         int spanCount;
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -87,16 +90,18 @@ public class MainActivity extends AppCompatActivity {
 
         final String nowPlayingUrl = "https://api.themoviedb.org/3/movie/now_playing?api_key=" + apiKey + "&language=en-US";
 
-
-        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
-            if (!useFavorites) {
+        if (savedInstanceState != null && savedInstanceState.getBoolean("useFavorites")) {
+            progressBar.setVisibility(View.GONE);
+            getFavoriteMovies();
+            useFavorites = true;
+        } else if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
                 new MovieTask().execute(nowPlayingUrl);
             } else {
-                progressBar.setVisibility(View.GONE);
-                getFavoriteMovies();
                 Toast.makeText(getApplicationContext(), noInternet, Toast.LENGTH_LONG).show();
-            }
+                getFavoriteMovies();
+                useFavorites = true;
         }
+
 
 
         SpeedDialView speedDialView = findViewById(R.id.speedDial);
@@ -129,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         speedDialView.setOnActionSelectedListener(new SpeedDialView.OnActionSelectedListener() {
             @Override
             public boolean onActionSelected(SpeedDialActionItem speedDialActionItem) {
+                Log.d(TAG, "speedDialActionItem called");
                 switch (speedDialActionItem.getId()) {
                     case R.id.fab_no_label:
                         useFavorites = true;
@@ -150,7 +156,32 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause called.");
+        if (mListState != null)
+            mRecyclerView.getLayoutManager().onRestoreInstanceState(mListState);
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        Log.d(TAG, "onPostResume called.");
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume called.");
+        if (mListState != null)
+            mRecyclerView.getLayoutManager().onRestoreInstanceState(mListState);
+
+    }
+
     public void getFavoriteMovies() {
+        Log.d(TAG, "getFavoriteMovies called.");
 
         MovieDataViewModel viewModel = ViewModelProviders.of(MainActivity.this).get(MovieDataViewModel.class);
         viewModel.loadAllMovies().observe(MainActivity.this, new Observer<List<MovieDataModel>>() {
@@ -166,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 mRecyclerView.setAdapter(mMovieDataModelAdapter);
+
             }
         });
     }
@@ -198,33 +230,24 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        Log.d(TAG, "onSaveInstanceState Called.");
         super.onSaveInstanceState(savedInstanceState);
+        Log.d(TAG, "onSaveInstanceState Called." + useFavorites);
         if (!useFavorites) {
             savedInstanceState.putBoolean("useFavorites", false);
         } else {
             savedInstanceState.putBoolean("useFavorites", true);
         }
 
+        mListState = mRecyclerView.getLayoutManager().onSaveInstanceState();
+        savedInstanceState.putParcelable("mRecyclerView", mListState);
     }
 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
-        Log.d(TAG, "onRestoreInstanceState Called");
-        super.onRestoreInstanceState(savedInstanceState);
 
-        Boolean checkFavorites = savedInstanceState.getBoolean("useFavorites");
+    if (mListState != null)
+        mListState = savedInstanceState.getParcelable("mRecyclerView");
 
-        if (checkFavorites) {
-            Log.d(TAG, "" + savedInstanceState.getBoolean("useFavorites"));
-            Toast.makeText(this, "got favorites", Toast.LENGTH_LONG).show();
-            useFavorites = true;
-            getFavoriteMovies();
-        } else {
-            Toast.makeText(this, "no favorites", Toast.LENGTH_LONG).show();
-            useFavorites = false;
-
-        }
     }
 
     public class MovieTask extends AsyncTask<String, Void, Integer> {

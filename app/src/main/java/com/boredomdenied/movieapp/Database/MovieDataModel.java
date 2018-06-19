@@ -101,15 +101,5 @@ public class MovieDataModel {
     }
 
 
-//    @Override
-//    public void writeToParcel(Parcel dest, int flags) {
-//        dest.writeInt(this.movieId);
-//        dest.writeString(this.moviePoster);
-//        dest.writeString(this.releaseDate);
-//        dest.writeString(this.userRating);
-//        dest.writeString(this.movieDescription);
-//        dest.writeString(this.heroBackdrop);
-//        dest.writeString(this.movieName);
-//    }
 }
 
