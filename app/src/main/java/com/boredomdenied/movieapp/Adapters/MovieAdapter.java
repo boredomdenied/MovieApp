@@ -3,6 +3,7 @@ package com.boredomdenied.movieapp.Adapters;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.CustomViewHo
     private List<Movie> movieList;
     private Context mContext;
     private OnMovieClickListener onMovieClickListener;
+    private static final String TAG = "MovieAdapter";
+
 
     public MovieAdapter(Context context, List<Movie> movieList) {
         this.movieList = movieList;
@@ -28,6 +31,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.CustomViewHo
 
     @Override
     public CustomViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        Log.d(TAG, "onCreateViewHolder called");
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_view_items, null);
         CustomViewHolder viewHolder = new CustomViewHolder(view);
         return viewHolder;
@@ -38,6 +42,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.CustomViewHo
         final Movie movie = movieList.get(i);
 
         if (!TextUtils.isEmpty(movie.getPoster())) {
+            Log.d(TAG, "onBindViewHolder called");
             Picasso.get().load(movie.getPoster())
                     .resize(185,277)
                     .error(R.drawable.placeholder)

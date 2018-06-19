@@ -201,9 +201,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onSaveInstanceState Called.");
         super.onSaveInstanceState(savedInstanceState);
         if (!useFavorites) {
-            savedInstanceState.putString("useFavorites", "false");
+            savedInstanceState.putBoolean("useFavorites", false);
         } else {
-            savedInstanceState.putString("useFavorites", "true");
+            savedInstanceState.putBoolean("useFavorites", true);
         }
 
     }
@@ -213,9 +213,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onRestoreInstanceState Called");
         super.onRestoreInstanceState(savedInstanceState);
 
-        String checkFavorites = savedInstanceState.getString("useFavorites");
+        Boolean checkFavorites = savedInstanceState.getBoolean("useFavorites");
 
-        if (checkFavorites == "true") {
+        if (checkFavorites) {
             Log.d(TAG, "" + savedInstanceState.getBoolean("useFavorites"));
             Toast.makeText(this, "got favorites", Toast.LENGTH_LONG).show();
             useFavorites = true;
