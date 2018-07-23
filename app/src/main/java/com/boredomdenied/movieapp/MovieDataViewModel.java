@@ -13,6 +13,7 @@ import java.util.List;
 
 public class MovieDataViewModel extends AndroidViewModel {
 
+    public String test = "test";
     private static final String TAG = MovieDataViewModel.class.getSimpleName();
     private final LiveData<List<MovieDataModel>> mAllMovies;
     private MovieDatabase movieDatabase;
