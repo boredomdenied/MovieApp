@@ -9,7 +9,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 @Entity(tableName = "movie")
-public class MovieDataModel {
+public class MovieDataModel implements Parcelable{
 
     @NonNull
     @PrimaryKey
@@ -42,6 +42,28 @@ public class MovieDataModel {
 
     }
 
+
+    protected MovieDataModel(Parcel in) {
+        movieId = in.readInt();
+        moviePoster = in.readString();
+        releaseDate = in.readString();
+        userRating = in.readString();
+        movieDescription = in.readString();
+        heroBackdrop = in.readString();
+        movieName = in.readString();
+    }
+
+    public static final Creator<MovieDataModel> CREATOR = new Creator<MovieDataModel>() {
+        @Override
+        public MovieDataModel createFromParcel(Parcel in) {
+            return new MovieDataModel(in);
+        }
+
+        @Override
+        public MovieDataModel[] newArray(int size) {
+            return new MovieDataModel[size];
+        }
+    };
 
     @NonNull
     public int getMovieId() {
@@ -101,5 +123,20 @@ public class MovieDataModel {
     }
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(movieId);
+        parcel.writeString(moviePoster);
+        parcel.writeString(releaseDate);
+        parcel.writeString(userRating);
+        parcel.writeString(movieDescription);
+        parcel.writeString(heroBackdrop);
+        parcel.writeString(movieName);
+    }
 }
 

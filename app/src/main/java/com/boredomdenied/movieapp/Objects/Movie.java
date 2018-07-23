@@ -1,7 +1,10 @@
 package com.boredomdenied.movieapp.Objects;
 
 
-public class Movie {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Movie implements Parcelable {
 
     private String title;
     private String poster;
@@ -11,6 +14,62 @@ public class Movie {
     private String movieDescription;
     private String userRating;
     private String releaseDate;
+
+    public Movie(Parcel in) {
+        title = in.readString();
+        poster = in.readString();
+        heroBackdrop = in.readString();
+        movieId = in.readInt();
+        movieName = in.readString();
+        movieDescription = in.readString();
+        userRating = in.readString();
+        releaseDate = in.readString();
+    }
+
+    public Movie(String title, String poster, String heroBackdrop, int movieId, String movieName, String movieDescription, String userRating, String releaseDate) {
+        this.title = title;
+        this.poster = poster;
+        this.heroBackdrop = heroBackdrop;
+        this.movieId = movieId;
+        this.movieName = movieName;
+        this.movieDescription = movieDescription;
+        this.userRating = userRating;
+        this.releaseDate = releaseDate;
+    }
+
+    public Movie() {
+
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(title);
+        dest.writeString(poster);
+
+        dest.writeString(heroBackdrop);
+        dest.writeInt(movieId);
+        dest.writeString(movieName);
+        dest.writeString(movieDescription);
+        dest.writeString(userRating);
+        dest.writeString(releaseDate);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
+        @Override
+        public Movie createFromParcel(Parcel in) {
+            return new Movie(in);
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 
     public String getTitle() {
         return title;

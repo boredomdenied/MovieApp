@@ -8,6 +8,7 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
@@ -45,7 +46,6 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
-
     private static final String apiKey = BuildConfig.MOVIE_API_KEY;
     private static final String TAG = "MovieApp";
     private static final String POSTER_URL = "http://image.tmdb.org/t/p/w185";
@@ -64,13 +64,14 @@ public class MainActivity extends AppCompatActivity {
     private NetworkInfo networkInfo;
     private ConnectivityManager conMan;
     private String noInternet = "No internet connectivity. Only displaying your Favorie Movies.";
+//    private Movie movie = new Movie();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate called.");
-        //       Stetho.initializeWithDefaults(this);
+               Stetho.initializeWithDefaults(this);
 
         int spanCount;
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -294,15 +295,9 @@ public class MainActivity extends AppCompatActivity {
                 mRecyclerView.setAdapter(adapter);
                 adapter.setOnMovieClickListener(new OnMovieClickListener() {
                     @Override
-                    public void onItemClick(Movie item) {
+                    public void onItemClick(Movie movie) {
                         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                        intent.putExtra("poster", item.getPoster());
-                        intent.putExtra("hero_backdrop", item.getHeroBackdrop());
-                        intent.putExtra("original_title", item.getMovieName());
-                        intent.putExtra("overview", item.getMovieDescription());
-                        intent.putExtra("vote_average", item.getUserRating());
-                        intent.putExtra("release_date", item.getReleaseDate());
-                        intent.putExtra("movie_id", item.getMovieId());
+                        intent.putExtra("myDataKey",  movie);
                         startActivity(intent);
 
                     }

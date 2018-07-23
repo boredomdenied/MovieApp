@@ -82,13 +82,9 @@ public class DetailActivity extends AppCompatActivity {
         mReleaseDate = findViewById(R.id.release_date);
         mRatingBar = findViewById(R.id.movie_rating);
 
-        final int movieId = getIntent().getExtras().getInt("movie_id");
-        final String moviePoster = getIntent().getExtras().getString("poster");
-        final String heroBackdrop = getIntent().getExtras().getString("hero_backdrop");
-        final String movieName = getIntent().getExtras().getString("original_title");
-        final String movieDescription = getIntent().getExtras().getString("overview");
-        final String userRating = getIntent().getExtras().getString("vote_average");
-        final String releaseDate = getIntent().getExtras().getString("release_date");
+        final Movie  movie = getIntent().getParcelableExtra("myDataKey");
+
+//        Toast.makeText(DetailActivity.this, (String.valueOf(movie.getMovieName())), Toast.LENGTH_SHORT).show();
 
 
         SpeedDialView speedDialView = findViewById(R.id.speedDialFavorite);
@@ -116,7 +112,7 @@ public class DetailActivity extends AppCompatActivity {
                 switch (speedDialActionItem.getId()) {
                     case R.id.fab_no_label:
 
-                        viewModel.loadMovieById(movieId).observe(DetailActivity.this, new Observer<MovieDataModel>() {
+                        viewModel.loadMovieById(movie.getMovieId()).observe(DetailActivity.this, new Observer<MovieDataModel>() {
 
                             @Override
                             public void onChanged(@Nullable MovieDataModel movie) {
@@ -129,8 +125,8 @@ public class DetailActivity extends AppCompatActivity {
                             }
                         });
 
-                        MovieDataModel movieDataModel = new MovieDataModel(movieId, moviePoster, releaseDate,
-                                userRating, movieDescription, heroBackdrop, movieName);
+                        MovieDataModel movieDataModel = new MovieDataModel(movie.getMovieId(), movie.getPoster(), movie.getReleaseDate(),
+                                movie.getUserRating(), movie.getMovieDescription(), movie.getHeroBackdrop(), movie.getMovieName());
 
                         viewModel.insertMovie(movieDataModel);
 
@@ -138,7 +134,7 @@ public class DetailActivity extends AppCompatActivity {
 
                     case R.id.fab_custom_color:
 
-                        viewModel.loadMovieById(movieId).observe(DetailActivity.this, new Observer<MovieDataModel>() {
+                        viewModel.loadMovieById(movie.getMovieId()).observe(DetailActivity.this, new Observer<MovieDataModel>() {
 
                             @Override
                             public void onChanged(@Nullable MovieDataModel movie) {
@@ -151,8 +147,8 @@ public class DetailActivity extends AppCompatActivity {
                             }
                         });
 
-                        MovieDataModel movieDataModel2 = new MovieDataModel(movieId, moviePoster, releaseDate,
-                                userRating, movieDescription, heroBackdrop, movieName);
+                        MovieDataModel movieDataModel2 = new MovieDataModel(movie.getMovieId(), movie.getPoster(), movie.getReleaseDate(),
+                                movie.getUserRating(), movie.getMovieDescription(), movie.getHeroBackdrop(), movie.getMovieName());
 
                         viewModel.deleteMovie(movieDataModel2);
 
@@ -166,28 +162,28 @@ public class DetailActivity extends AppCompatActivity {
         });
 
 
-        final String MOVIE_URL = "https://api.themoviedb.org/3/movie/" + movieId + "/videos?api_key=" + apiKey + "&language=en-US";
-        final String REVIEW_URL = "https://api.themoviedb.org/3/movie/" + movieId + "/reviews?api_key=" + apiKey + "&language=en-US";
+        final String MOVIE_URL = "https://api.themoviedb.org/3/movie/" + movie.getMovieId() + "/videos?api_key=" + apiKey + "&language=en-US";
+        final String REVIEW_URL = "https://api.themoviedb.org/3/movie/" + movie.getMovieId() + "/reviews?api_key=" + apiKey + "&language=en-US";
 
         new MovieTask().execute(MOVIE_URL);
         new ReviewTask().execute(REVIEW_URL);
 
         Picasso.get()
-                .load(moviePoster)
+                .load(movie.getPoster())
                 .placeholder(R.color.colorPrimaryDark)
                 .into(poster);
 
         Picasso.get()
-                .load(heroBackdrop)
+                .load(movie.getHeroBackdrop())
                 .placeholder(R.color.colorPrimaryDark)
                 .into(hero);
 
-        mTitle.setText(movieName);
-        mOverview.setText(movieDescription);
-        mRatingBar.setRating(Float.valueOf(userRating) / 2);
+        mTitle.setText(movie.getMovieName());
+        mOverview.setText(movie.getMovieDescription());
+//        mRatingBar.setRating(Float.valueOf(movie.getUserRating()) / 2);
         mTextRating.setText("Rating:  ");
-        mUserRating.setText(userRating);
-        mReleaseDate.setText("Released:  " + releaseDate);
+        mUserRating.setText(movie.getUserRating());
+        mReleaseDate.setText("Released:  " + movie.getReleaseDate());
 
     }
 
